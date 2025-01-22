@@ -1,0 +1,158 @@
+{
+	"name": "Axie_ETL_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "ExtractFunction",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"x-functions-key": {
+							"value": "@Microsoft.KeyVault(SecretUri=https://axieinfinitykv.vault.azure.net/secrets/ExtractFunctionKey)",
+							"type": "Expression"
+						}
+					},
+					"url": "https://axie-etl.azurewebsites.net/api/extract"
+				}
+			},
+			{
+				"name": "SetBlobName",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ExtractFunction",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ExtractedBlobName",
+					"value": {
+						"value": "@activity('ExtractFunction').output.blob_name",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "TransformFunction",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "SetBlobName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"x-functions-key": {
+							"value": "@Microsoft.KeyVault(SecretUri=https://axieinfinitykv.vault.azure.net/secrets/TransformFunctionKey)",
+							"type": "Expression"
+						}
+					},
+					"url": "https://axie-etl.azurewebsites.net/api/transform",
+					"body": {
+						"blob_name": "@variables('ExtractedBlobName')"
+					}
+				}
+			},
+			{
+				"name": "SetFileList",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "TransformFunction",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ExtractedFileList",
+					"value": {
+						"value": "@activity('TransformFunction').output.file_list",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "LoadFunction",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "SetFileList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"x-functions-key": {
+							"value": "@Microsoft.KeyVault(SecretUri=https://axieinfinitykv.vault.azure.net/secrets/LoadFunctionKey)",
+							"type": "Expression"
+						}
+					},
+					"url": "https://axie-etl.azurewebsites.net/api/load",
+					"body": {
+						"file_list": "@variables('ExtractedFileList')"
+					}
+				}
+			}
+		],
+		"variables": {
+			"ExtractedBlobName": {
+				"type": "String"
+			},
+			"ExtractedFileList": {
+				"type": "Array"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-01-15T02:22:17Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
