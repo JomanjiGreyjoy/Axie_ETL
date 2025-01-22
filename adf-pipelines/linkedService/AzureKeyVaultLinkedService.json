@@ -4,7 +4,7 @@
 		"annotations": [],
 		"type": "AzureKeyVault",
 		"typeProperties": {
-			"baseUrl": "https://axieinfinitykv.vault.azure.net/"
+			"baseUrl": "https://axieinfinitykv.vault.azure.net"
 		}
 	}
 }
