@@ -1,0 +1,9 @@
+{
+	"name": "axie-infinity-marketplace-adf",
+	"location": "uksouth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "502a9041-7dd5-41ad-b416-e34617935313",
+		"tenantId": "c542df1e-994a-4280-bb43-e40d65c685a7"
+	}
+}
